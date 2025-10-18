@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { getAllJokes,postNewJoke } from "./services/jokeService"
 import "./App.css"
+import stevePic from "./assets/steve.png"
 
 export const App = () => {
 
@@ -14,8 +15,10 @@ const handlePostJoke = async () => {
 
 return ( 
 <div className="app-container">
-  <div className="app-heading">
-    <h1 className="app-heading-text"></h1>
+  <div className="app-heading"><div className="app-heading-circle">
+   <img className="app-logo" src={stevePic} alt="Good job Steve" />
+ </div>
+    <h1 className="app-heading-text">Chuckle Checklist</h1>
     </div>
 
     <h2>Add a Joke</h2>
