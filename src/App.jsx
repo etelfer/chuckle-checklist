@@ -1,117 +1,83 @@
-import { useEffect, useState } from "react"
-import { getAllJokes,postNewJoke,toggleJokeStatus,deleteJoke } from "./services/jokeService"
-import "./App.css"
-import stevePic from "./assets/steve.png"
+
+import { useEffect, useState } from "react";
+import { getAllJokes, postNewJoke, toggleJokeStatus, deleteJoke } from "./services/jokeService";
+import "./App.css";
+// Import your new components
+import { Header } from "./components/Header";
+import { AddAJoke } from "./components/AddAJoke";
+import { JokeList } from "./components/JokeList";
 
 export const App = () => {
+  // All state lives in the top-level component
+  const [newJoke, setNewJoke] = useState("");
+  const [allJokes, setAllJokes] = useState([]);
+  const [untoldJokes, setUntoldJokes] = useState([]);
+  const [toldJokes, setToldJokes] = useState([]);
 
-  const [newJoke, setNewJoke] = useState("")
-  const [allJokes, setAllJokes] = useState([])
-  const [untoldJokes, setUntoldJokes] = useState([])
-  const [toldJokes, setToldJokes] = useState([])
+  // All data-handling functions live here
+  const rerenderNewJoke = () => {
+    getAllJokes().then((jokeArr) => {
+      setAllJokes(jokeArr);
+    });
+  };
 
-const rerenderNewJoke = () => {
-  getAllJokes().then((jokeArr) => {
-  setAllJokes(jokeArr)
-})
-  }
+  const handlePostJoke = () => {
+    postNewJoke(newJoke).then(() => {
+      setNewJoke("");
+      rerenderNewJoke();
+    });
+  };
 
-const handlePostJoke = async () => {
-  await postNewJoke(newJoke)
-  setNewJoke("")
-  rerenderNewJoke()
-}
+  const handleToggle = (joke) => {
+    toggleJokeStatus(joke).then(() => {
+      rerenderNewJoke();
+    });
+  };
 
-useEffect(() => {
-  getAllJokes().then((jokesArray) => {
-    setAllJokes(jokesArray)
-    console.log("jokes set!")
-  })
-}, [])
+  const handleDelete = (joke) => {
+    deleteJoke(joke).then(() => {
+      rerenderNewJoke();
+    });
+  };
 
-  useEffect(() => { 
-    const toldJokesArray = allJokes.filter(joke => joke.told === true)
-    setToldJokes(toldJokesArray)
+  // All effects that manage data live here
+  useEffect(() => {
+    rerenderNewJoke();
+  }, []);
 
-    const untoldJokesArray = allJokes.filter(joke => joke.told === false)
-    setUntoldJokes(untoldJokesArray)
-  },[allJokes])
+  useEffect(() => {
+    const toldJokesArray = allJokes.filter((joke) => joke.told);
+    setToldJokes(toldJokesArray);
 
-const handleToggle = (joke) => {
+    const untoldJokesArray = allJokes.filter((joke) => !joke.told);
+    setUntoldJokes(untoldJokesArray);
+  }, [allJokes]);
 
-  toggleJokeStatus(joke).then(() => {
-    rerenderNewJoke()
-  })
-}
-
-const handleDelete = (joke) => {
-  deleteJoke(joke).then(() => {
-    rerenderNewJoke()
-  })
-}
-
-
-
-return ( 
-<div className="app-container">
-  <div className="app-heading"><div className="app-heading-circle">
-   <img className="app-logo" src={stevePic} alt="Good job Steve" />
- </div>
-    <h1 className="app-heading-text">Chuckle Checklist</h1>
+  return (
+    <div className="app-container">
+      <Header />
+      <h2>Add a Joke</h2>
+      <AddAJoke
+        newJoke={newJoke}
+        setNewJoke={setNewJoke}
+        handlePostJoke={handlePostJoke}
+      />
+      <div className="joke-lists-container">
+        <JokeList
+          title="Untold Jokes"
+          jokes={untoldJokes}
+          count={untoldJokes.length}
+          handleToggle={handleToggle}
+          handleDelete={handleDelete}
+        />
+        <JokeList
+          title="Told Jokes"
+          jokes={toldJokes}
+          count={toldJokes.length}
+          handleToggle={handleToggle}
+          handleDelete={handleDelete}
+        />
+      </div>
     </div>
-
-    <h2>Add a Joke</h2>
-    <div className="joke-add-form">
-  <input
-  className="joke-input"
-  type="text"
-  value={newJoke}
-  placeholder="New One Liner"
-  onChange={(event) => {
-  return setNewJoke(event.target.value)
-  }}/> 
-  <button className="joke-input-submit"
-  onClick={handlePostJoke}>
-    Add
-  </button>
-</div>
-<div className="joke-lists-container">
-  <div className="joke-list-container">
-    <h2>
-      Untold Jokes
-      <span className="untold-count">{untoldJokes.length}</span>
-    </h2>
-    <ul>
-      {untoldJokes.map((joke) => {
-        return (
-          <li className="joke-list-item" key={joke.id}>
-            <p className="joke-item-text">{joke.text}</p>
-            <button className="joke-list-action-toggle" onClick={() => handleToggle(joke)}><i className="fa-regular fa-face-smile" /></button>
-            <button className="joke-list-action-delete" onClick={() => handleDelete(joke)}><i className="fa-regular fa-trash-can" /></button>
-          </li>
-        )
-      })}
-    </ul>
-  </div>
-    <div className="joke-list-container">
-    <h2>
-      Told Jokes
-      <span className="told-count">{toldJokes.length}</span>
-    </h2>
-    <ul>
-      {toldJokes.map((joke) => {
-        return (
-          <li className="joke-list-item" key={joke.id}>
-            <p className="joke-item-text">{joke.text}</p>
-            <button className="joke-list-action-toggle" onClick={() => handleToggle(joke)}><i className="fa-regular fa-face-meh" /></button>
-            <button className="joke-list-action-delete" onClick={() => handleDelete(joke)}><i className="fa-regular fa-trash-can" /></button>
-          </li>
-        )
-      })}
-    </ul>
-  </div>
-</div>
-</div>
-
-)
-}
+  );
+};
